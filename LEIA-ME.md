@@ -1,6 +1,6 @@
 Instale os seguintes componentes:
 
-Java javafx-sdk-21.0.7 (JDK): Download Oracle JDK ou OpenJDK.
+Java JDK 21 e javafx-sdk-21.0.7: Download Oracle JDK ou OpenJDK.
 
 PostgreSQL 17.4-1: Download PostgreSQL.
 
