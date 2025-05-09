@@ -4,6 +4,10 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.geometry.*;
 import javafx.scene.paint.Color;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+import javafx.util.StringConverter;
 
 public class NotaFaturaView {
 
@@ -108,6 +112,26 @@ public class NotaFaturaView {
                 + "-fx-font-size: 16px; "
                 + "-fx-text-fill: #BDBDBD;"
         );
+        // Configurar formato de data brasileiro (dd-MM-yy)
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yy", new Locale("pt", "BR"));
+        dataEmissaoPicker.setConverter(new StringConverter<LocalDate>() {
+            @Override
+            public String toString(LocalDate date) {
+                return (date != null) ? formatter.format(date) : "";
+            }
+
+            @Override
+            public LocalDate fromString(String string) {
+                if (string == null || string.isEmpty()) {
+                    return null;
+                }
+                try {
+                    return LocalDate.parse(string, formatter);
+                } catch (Exception e) {
+                    return null;
+                }
+            }
+        });
         dataEmissaoPicker.setStyle(
                 "-fx-background-color: #2A2A2A; "
                 + "-fx-text-fill: #FFFFFF; "
@@ -159,7 +183,8 @@ public class NotaFaturaView {
                 + "-fx-border-color: #4A4A4A; "
                 + "-fx-border-width: 1; "
                 + "-fx-background-radius: 5; "
-                + "-fx-border-radius: 5;"               
+                + "-fx-border-radius: 5; "
+                + "-fx-prompt-text-fill: #BDBDBD;"
         );
         marcaComboBox.focusedProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal) {
@@ -170,7 +195,8 @@ public class NotaFaturaView {
                         + "-fx-border-color: #F0A818; "
                         + "-fx-border-width: 1; "
                         + "-fx-background-radius: 5; "
-                        + "-fx-border-radius: 5;"                        
+                        + "-fx-border-radius: 5; "
+                        + "-fx-prompt-text-fill: #BDBDBD;"
                 );
             } else {
                 marcaComboBox.setStyle(
@@ -180,7 +206,8 @@ public class NotaFaturaView {
                         + "-fx-border-color: #4A4A4A; "
                         + "-fx-border-width: 1; "
                         + "-fx-background-radius: 5; "
-                        + "-fx-border-radius: 5;"
+                        + "-fx-border-radius: 5; "
+                        + "-fx-prompt-text-fill: #BDBDBD;"
                 );
             }
         });
@@ -189,17 +216,24 @@ public class NotaFaturaView {
 
         // Botão Adicionar Nova Fatura
         VBox adicionarBox = new VBox(5);
-        Label placeholderLabel = new Label(""); // Placeholder para alinhar com os campos
-        placeholderLabel.setStyle("-fx-font-size: 16px;"); // Mesma altura dos rótulos
+        Label placeholderLabel = new Label("");
+        placeholderLabel.setStyle("-fx-font-size: 16px;");
         String buttonStyle
-                = "-fx-background-color: #F0A818 !important; "
-                + "-fx-text-fill: #000000 !important; "
-                + "-fx-font-family: Arial !important; "
-                + "-fx-font-weight: bold !important; "
-                + "-fx-font-size: 14px !important; "
-                + "-fx-background-radius: 5 !important;";
+                = "-fx-background-color: #F0A818; "
+                + "-fx-text-fill: #000000; "
+                + "-fx-font-family: Arial; "
+                + "-fx-font-weight: bold; "
+                + "-fx-font-size: 14px; "
+                + "-fx-background-radius: 5;";
         adicionarFaturaButton.setStyle(buttonStyle);
-        adicionarFaturaButton.setOnMouseEntered(e -> adicionarFaturaButton.setStyle(buttonStyle));
+        adicionarFaturaButton.setOnMouseEntered(e -> adicionarFaturaButton.setStyle(
+                "-fx-background-color: #FFC107; "
+                + "-fx-text-fill: #000000; "
+                + "-fx-font-family: Arial; "
+                + "-fx-font-weight: bold; "
+                + "-fx-font-size: 14px; "
+                + "-fx-background-radius: 5;"
+        ));
         adicionarFaturaButton.setOnMouseExited(e -> adicionarFaturaButton.setStyle(buttonStyle));
         adicionarFaturaButton.setPrefWidth(150);
         adicionarBox.getChildren().addAll(placeholderLabel, adicionarFaturaButton);

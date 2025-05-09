@@ -15,12 +15,13 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.text.DecimalFormatSymbols;
 import java.util.Locale;
+import java.util.stream.Collectors;
 import java.util.function.UnaryOperator;
+import javafx.util.StringConverter;
 
 public class NotaFaturaController {
 
@@ -48,7 +49,7 @@ public class NotaFaturaController {
         });
 
         // Configurar botão Adicionar Nova Fatura
-        view.getAdicionarFaturaButton().setPrefWidth(200); // Aumentado para mostrar texto completo
+        view.getAdicionarFaturaButton().setPrefWidth(200);
         view.getAdicionarFaturaButton().setStyle(
                 "-fx-background-color: #f0a818; "
                 + "-fx-text-fill: #FFFFFF; "
@@ -106,7 +107,72 @@ public class NotaFaturaController {
                     .stream()
                     .map(Marca::getNome)
                     .collect(Collectors.toList());
-            view.getMarcaComboBox().setItems(FXCollections.observableArrayList(nomesMarcas));
+            ComboBox<String> marcaComboBox = view.getMarcaComboBox();
+            marcaComboBox.setItems(FXCollections.observableArrayList(nomesMarcas));
+
+            // Configurar cellFactory para estilizar itens da lista suspensa
+            marcaComboBox.setCellFactory(listView -> new ListCell<String>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                        setStyle("");
+                    } else {
+                        setText(item);
+                        setStyle(
+                            "-fx-text-fill: #FFFFFF; "
+                            + "-fx-background-color: #2A2A2A; "
+                            + "-fx-font-family: Arial; "
+                            + "-fx-font-size: 14px;"
+                        );
+                        // Destacar item ao passar o mouse
+                        setOnMouseEntered(e -> setStyle(
+                            "-fx-text-fill: #F0A818; "
+                            + "-fx-background-color: #3A3A3A; "
+                            + "-fx-font-family: Arial; "
+                            + "-fx-font-size: 14px;"
+                        ));
+                        setOnMouseExited(e -> setStyle(
+                            "-fx-text-fill: #FFFFFF; "
+                            + "-fx-background-color: #2A2A2A; "
+                            + "-fx-font-family: Arial; "
+                            + "-fx-font-size: 14px;"
+                        ));
+                    }
+                }
+            });
+
+            // Configurar buttonCell para estilizar o item selecionado
+            marcaComboBox.setButtonCell(new ListCell<String>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                        setStyle("");
+                    } else {
+                        setText(item);
+                        setStyle(
+                            "-fx-text-fill: #FFFFFF; "
+                            + "-fx-background-color: #2A2A2A; "
+                            + "-fx-font-family: Arial; "
+                            + "-fx-font-size: 14px;"
+                        );
+                    }
+                }
+            });
+
+            // Garantir estilo consistente do ComboBox
+            marcaComboBox.setStyle(
+                "-fx-background-color: #2A2A2A; "
+                + "-fx-text-fill: #FFFFFF; "
+                + "-fx-font-size: 14px; "
+                + "-fx-border-color: #4A4A4A; "
+                + "-fx-border-width: 1; "
+                + "-fx-background-radius: 5; "
+                + "-fx-border-radius: 5;"
+            );
         } catch (SQLException e) {
             mostrarAlerta("Erro ao carregar marcas: " + e.getMessage(), Alert.AlertType.ERROR);
         }
@@ -147,6 +213,26 @@ public class NotaFaturaController {
                 + "-fx-text-fill: #BDBDBD;"
         );
         DatePicker vencimentoPicker = new DatePicker();
+        // Configurar formato de data brasileiro (dd-MM-yy)
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yy", new Locale("pt", "BR"));
+        vencimentoPicker.setConverter(new StringConverter<LocalDate>() {
+            @Override
+            public String toString(LocalDate date) {
+                return (date != null) ? formatter.format(date) : "";
+            }
+
+            @Override
+            public LocalDate fromString(String string) {
+                if (string == null || string.isEmpty()) {
+                    return null;
+                }
+                try {
+                    return LocalDate.parse(string, formatter);
+                } catch (Exception e) {
+                    return null;
+                }
+            }
+        });
         vencimentoPicker.setStyle(
                 "-fx-background-color: #2A2A2A; "
                 + "-fx-text-fill: #FFFFFF; "
@@ -244,7 +330,7 @@ public class NotaFaturaController {
 
         // Botão Remover
         VBox removerBox = new VBox(5);
-        Label placeholderLabel = new Label(""); // Placeholder para alinhar com os rótulos
+        Label placeholderLabel = new Label("");
         placeholderLabel.setStyle("-fx-font-size: 16px;");
         Button removerButton = new Button("Remover");
         removerButton.setStyle(
@@ -297,7 +383,6 @@ public class NotaFaturaController {
             LocalDate dataEmissao = view.getDataEmissaoPicker().getValue();
             String marca = view.getMarcaComboBox().getValue();
 
-            // Criar lista de Faturas
             List<Fatura> listaFaturas = new ArrayList<>();
             for (HBox faturaBox : faturas) {
                 TextField numeroFaturaField = (TextField) ((VBox) faturaBox.getChildren().get(0)).getChildren().get(1);
@@ -309,16 +394,13 @@ public class NotaFaturaController {
                 String valorTexto = valorField.getText().trim();
                 double valor = converterValor(valorTexto);
 
-                // Criar objeto Fatura com numeroFatura
                 Fatura fatura = new Fatura(numeroFatura, vencimento, valor, "Não Emitida");
                 listaFaturas.add(fatura);
             }
 
-            // Criar objeto NotaFiscal
             NotaFiscal notaFiscal = new NotaFiscal(numeroNota, dataEmissao, marca, listaFaturas);
             int notaFiscalId = notaFiscalDAO.inserirNotaFiscal(notaFiscal);
 
-            // Inserir faturas
             faturaDAO.inserirFaturas(listaFaturas, notaFiscalId);
 
             conn.commit();
@@ -338,7 +420,6 @@ public class NotaFaturaController {
         if (valorTexto.isEmpty()) {
             throw new NumberFormatException("Valor não pode estar vazio");
         }
-        // Converter vírgula para ponto para compatibilidade com Double.parseDouble
         String valorFormatado = valorTexto.replace(",", ".");
         return Double.parseDouble(valorFormatado);
     }
