@@ -158,7 +158,7 @@ public class NotaFiscalView {
                 + "-fx-border-color: #4A4A4A; "
                 + "-fx-border-width: 1; "
                 + "-fx-background-radius: 5; "
-                + "-fx-border-radius: 5;"
+                + "-fx-border-radius: 5;"               
         );
         marcaComboBox.focusedProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal) {

@@ -159,7 +159,7 @@ public class NotaFaturaView {
                 + "-fx-border-color: #4A4A4A; "
                 + "-fx-border-width: 1; "
                 + "-fx-background-radius: 5; "
-                + "-fx-border-radius: 5;"
+                + "-fx-border-radius: 5;"               
         );
         marcaComboBox.focusedProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal) {
@@ -170,7 +170,7 @@ public class NotaFaturaView {
                         + "-fx-border-color: #F0A818; "
                         + "-fx-border-width: 1; "
                         + "-fx-background-radius: 5; "
-                        + "-fx-border-radius: 5;"
+                        + "-fx-border-radius: 5;"                        
                 );
             } else {
                 marcaComboBox.setStyle(
