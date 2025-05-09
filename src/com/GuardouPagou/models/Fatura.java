@@ -4,21 +4,33 @@ import java.time.LocalDate;
 
 public class Fatura {
     private int id;
+    private int notaFiscalId;
+    private String numeroNota;
     private int numeroFatura;
-    private String numeroNota; // Novo campo para número da nota
     private LocalDate vencimento;
     private double valor;
     private String status;
 
+    // Construtor vazio
     public Fatura() {
     }
 
+    // Construtor existente
     public Fatura(LocalDate vencimento, double valor, String status) {
         this.vencimento = vencimento;
         this.valor = valor;
         this.status = status;
     }
 
+    // Novo construtor para incluir numeroFatura
+    public Fatura(int numeroFatura, LocalDate vencimento, double valor, String status) {
+        this.numeroFatura = numeroFatura;
+        this.vencimento = vencimento;
+        this.valor = valor;
+        this.status = status;
+    }
+
+    // Getters e Setters
     public int getId() {
         return id;
     }
@@ -27,12 +39,12 @@ public class Fatura {
         this.id = id;
     }
 
-    public int getNumeroFatura() {
-        return numeroFatura;
+    public int getNotaFiscalId() {
+        return notaFiscalId;
     }
 
-    public void setNumeroFatura(int numeroFatura) {
-        this.numeroFatura = numeroFatura;
+    public void setNotaFiscalId(int notaFiscalId) {
+        this.notaFiscalId = notaFiscalId;
     }
 
     public String getNumeroNota() {
@@ -41,6 +53,14 @@ public class Fatura {
 
     public void setNumeroNota(String numeroNota) {
         this.numeroNota = numeroNota;
+    }
+
+    public int getNumeroFatura() {
+        return numeroFatura;
+    }
+
+    public void setNumeroFatura(int numeroFatura) {
+        this.numeroFatura = numeroFatura;
     }
 
     public LocalDate getVencimento() {
