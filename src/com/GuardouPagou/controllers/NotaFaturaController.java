@@ -55,7 +55,7 @@ public class NotaFaturaController {
                 + "-fx-background-radius: 5;"
         );
         view.getAdicionarFaturaButton().setOnMouseEntered(e -> view.getAdicionarFaturaButton().setStyle(
-                "-fx-background-color: ##f0a818; "
+                "-fx-background-color: #FFC107; "
                 + "-fx-text-fill: #FFFFFF; "
                 + "-fx-font-family: Arial; "
                 + "-fx-font-weight: bold; "
@@ -63,7 +63,7 @@ public class NotaFaturaController {
                 + "-fx-background-radius: 5;"
         ));
         view.getAdicionarFaturaButton().setOnMouseExited(e -> view.getAdicionarFaturaButton().setStyle(
-                "-fx-background-color: #4CAF50; "
+                "-fx-background-color: #f0a818; "
                 + "-fx-text-fill: #FFFFFF; "
                 + "-fx-font-family: Arial; "
                 + "-fx-font-weight: bold; "
@@ -73,7 +73,7 @@ public class NotaFaturaController {
         view.getAdicionarFaturaButton().focusedProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal) {
                 view.getAdicionarFaturaButton().setStyle(
-                        "-fx-background-color: #4CAF50; "
+                        "-fx-background-color: #f0a818; "
                         + "-fx-text-fill: #FFFFFF; "
                         + "-fx-font-family: Arial; "
                         + "-fx-font-weight: bold; "
@@ -84,7 +84,7 @@ public class NotaFaturaController {
                 );
             } else {
                 view.getAdicionarFaturaButton().setStyle(
-                        "-fx-background-color: #4CAF50; "
+                        "-fx-background-color: #f0a818; "
                         + "-fx-text-fill: #FFFFFF; "
                         + "-fx-font-family: Arial; "
                         + "-fx-font-weight: bold; "
