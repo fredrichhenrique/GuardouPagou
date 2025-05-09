@@ -18,6 +18,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
+import java.util.function.UnaryOperator;
 
 public class NotaFaturaController {
 
@@ -188,7 +191,7 @@ public class NotaFaturaController {
                 + "-fx-text-fill: #BDBDBD;"
         );
         TextField valorField = new TextField();
-        valorField.setPromptText("Digite o valor");
+        valorField.setPromptText("Ex.: 150,50");
         valorField.setStyle(
                 "-fx-background-color: #2A2A2A; "
                 + "-fx-text-fill: #FFFFFF; "
@@ -224,6 +227,18 @@ public class NotaFaturaController {
                 );
             }
         });
+
+        // Adicionar TextFormatter para aceitar números decimais com vírgula
+        UnaryOperator<TextFormatter.Change> filter = change -> {
+            String newText = change.getControlNewText();
+            if (newText.matches("\\d*(,\\d{0,2})?")) {
+                return change;
+            }
+            return null;
+        };
+        TextFormatter<String> textFormatter = new TextFormatter<>(filter);
+        valorField.setTextFormatter(textFormatter);
+
         valorBox.getChildren().addAll(valorLabel, valorField);
         valorBox.setPrefWidth(150);
 
@@ -291,7 +306,8 @@ public class NotaFaturaController {
 
                 int numeroFatura = Integer.parseInt(numeroFaturaField.getText());
                 LocalDate vencimento = vencimentoPicker.getValue();
-                double valor = Double.parseDouble(valorField.getText().trim());
+                String valorTexto = valorField.getText().trim();
+                double valor = converterValor(valorTexto);
 
                 // Criar objeto Fatura com numeroFatura
                 Fatura fatura = new Fatura(numeroFatura, vencimento, valor, "Não Emitida");
@@ -316,6 +332,15 @@ public class NotaFaturaController {
                 ex.printStackTrace();
             }
         }
+    }
+
+    private double converterValor(String valorTexto) throws NumberFormatException {
+        if (valorTexto.isEmpty()) {
+            throw new NumberFormatException("Valor não pode estar vazio");
+        }
+        // Converter vírgula para ponto para compatibilidade com Double.parseDouble
+        String valorFormatado = valorTexto.replace(",", ".");
+        return Double.parseDouble(valorFormatado);
     }
 
     private boolean validarDados() {
@@ -362,9 +387,9 @@ public class NotaFaturaController {
                 valido = false;
             } else {
                 try {
-                    Double.parseDouble(valorField.getText().trim());
+                    converterValor(valorField.getText().trim());
                 } catch (NumberFormatException e) {
-                    erros.append("• Valor da fatura ").append(numeroFaturaField.getText()).append(" deve ser um número válido\n");
+                    erros.append("• Valor da fatura ").append(numeroFaturaField.getText()).append(" deve ser um número válido (ex.: 123,45)\n");
                     destacarErro(valorField);
                     valido = false;
                 }
