@@ -23,7 +23,7 @@ public class NotaFaturaView {
         numeroNotaField = new TextField();
         dataEmissaoPicker = new DatePicker();
         marcaComboBox = new ComboBox<>();
-        adicionarFaturaButton = new Button("Adicionar Nova Fatura");
+        adicionarFaturaButton = new Button("+ Adicionar Nova Fatura");
         faturasContainer = new VBox(10);
         salvarButton = new Button("Salvar");
         root = new BorderPane();
@@ -65,7 +65,7 @@ public class NotaFaturaView {
                 + "-fx-font-size: 16px; "
                 + "-fx-text-fill: #BDBDBD;"
         );
-        numeroNotaField.setPromptText("Digite o número da nota");
+        numeroNotaField.setPromptText("Nº da Nota Fiscal");
         numeroNotaField.setStyle(
                 "-fx-background-color: #2A2A2A; "
                 + "-fx-text-fill: #FFFFFF; "
@@ -113,7 +113,7 @@ public class NotaFaturaView {
                 + "-fx-text-fill: #BDBDBD;"
         );
         // Configurar formato de data brasileiro (dd-MM-yy)
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yy", new Locale("pt", "BR"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy", new Locale("pt", "BR"));
         dataEmissaoPicker.setConverter(new StringConverter<LocalDate>() {
             @Override
             public String toString(LocalDate date) {
