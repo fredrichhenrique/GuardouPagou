@@ -195,11 +195,15 @@ public class MainView {
             @Override
             protected void updateItem(String descricao, boolean empty) {
                 super.updateItem(descricao, empty);
-                if (empty || descricao == null) {
+                if (empty) {
                     setText(null);
+                    setStyle("");
+                } else if (descricao == null || descricao.trim().isEmpty()) {
+                    setText("Nenhuma descrição adicionada");
                     setStyle("");
                 } else {
                     setText(descricao);
+                    setStyle("");
                 }
             }
         });
