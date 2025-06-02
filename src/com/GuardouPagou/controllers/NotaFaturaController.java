@@ -1,30 +1,36 @@
 package com.GuardouPagou.controllers;
 
-import com.GuardouPagou.models.NotaFaturaView;
-import com.GuardouPagou.models.Fatura;
-import com.GuardouPagou.models.Marca;
-import com.GuardouPagou.models.NotaFiscal;
 import com.GuardouPagou.dao.FaturaDAO;
 import com.GuardouPagou.dao.MarcaDAO;
 import com.GuardouPagou.dao.NotaFiscalDAO;
-import javafx.collections.ObservableList;
+import com.GuardouPagou.models.DatabaseConnection;
+import com.GuardouPagou.models.Fatura;
+import com.GuardouPagou.models.Marca;
+import com.GuardouPagou.models.NotaFiscal;
+import com.GuardouPagou.models.NotaFaturaView;
+import javafx.collections.FXCollections;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.geometry.Pos;
-import javafx.geometry.Insets;
-import java.time.LocalDate;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+import java.util.function.UnaryOperator;
+import javafx.util.StringConverter;
 
 public class NotaFaturaController {
+
     private final NotaFaturaView view;
     private final NotaFiscalDAO notaFiscalDAO;
     private final FaturaDAO faturaDAO;
     private final MarcaDAO marcaDAO;
-    private int contadorFaturas = 0;
+    private int contadorFaturas = 1;
+    private final List<HBox> faturas = new ArrayList<>();
 
     public NotaFaturaController(NotaFaturaView view) {
         this.view = view;
@@ -36,346 +42,525 @@ public class NotaFaturaController {
     }
 
     private void configurarEventos() {
-        view.getAdicionarFaturaButton().setOnAction(e -> adicionarCamposFatura());
-        view.getSalvarButton().setOnAction(e -> salvarNotaComFaturas());
         view.getNumeroNotaField().textProperty().addListener((obs, oldVal, newVal) -> {
             if (!newVal.matches("\\d*")) {
                 view.getNumeroNotaField().setText(newVal.replaceAll("[^\\d]", ""));
             }
         });
+
+        // Configurar botão Adicionar Nova Fatura
+        view.getAdicionarFaturaButton().setPrefWidth(200);
+        view.getAdicionarFaturaButton().setStyle(
+                "-fx-background-color: #f0a818; "
+                + "-fx-text-fill: #FFFFFF; "
+                + "-fx-font-family: Arial; "
+                + "-fx-font-weight: bold; "
+                + "-fx-font-size: 14px; "
+                + "-fx-background-radius: 5;"
+        );
+        view.getAdicionarFaturaButton().setOnMouseEntered(e -> view.getAdicionarFaturaButton().setStyle(
+                "-fx-background-color: #FFC107; "
+                + "-fx-text-fill: #FFFFFF; "
+                + "-fx-font-family: Arial; "
+                + "-fx-font-weight: bold; "
+                + "-fx-font-size: 14px; "
+                + "-fx-background-radius: 5;"
+        ));
+        view.getAdicionarFaturaButton().setOnMouseExited(e -> view.getAdicionarFaturaButton().setStyle(
+                "-fx-background-color: #f0a818; "
+                + "-fx-text-fill: #FFFFFF; "
+                + "-fx-font-family: Arial; "
+                + "-fx-font-weight: bold; "
+                + "-fx-font-size: 14px; "
+                + "-fx-background-radius: 5;"
+        ));
+        view.getAdicionarFaturaButton().focusedProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal) {
+                view.getAdicionarFaturaButton().setStyle(
+                        "-fx-background-color: #f0a818; "
+                        + "-fx-text-fill: #FFFFFF; "
+                        + "-fx-font-family: Arial; "
+                        + "-fx-font-weight: bold; "
+                        + "-fx-font-size: 14px; "
+                        + "-fx-border-color: #F0A818; "
+                        + "-fx-border-width: 1; "
+                        + "-fx-background-radius: 5;"
+                );
+            } else {
+                view.getAdicionarFaturaButton().setStyle(
+                        "-fx-background-color: #f0a818; "
+                        + "-fx-text-fill: #FFFFFF; "
+                        + "-fx-font-family: Arial; "
+                        + "-fx-font-weight: bold; "
+                        + "-fx-font-size: 14px; "
+                        + "-fx-background-radius: 5;"
+                );
+            }
+        });
+        view.getAdicionarFaturaButton().setOnAction(e -> adicionarCamposFatura());
+        view.getSalvarButton().setOnAction(e -> salvarNotaFiscal());
     }
 
     private void carregarMarcas() {
         try {
-            ObservableList<Marca> marcas = marcaDAO.listarMarcas();
-            view.getMarcaComboBox().getItems().clear();
-            marcas.forEach(marca -> view.getMarcaComboBox().getItems().add(marca.getNome()));
+            List<String> nomesMarcas = marcaDAO.listarMarcas()
+                    .stream()
+                    .map(Marca::getNome)
+                    .collect(Collectors.toList());
+            ComboBox<String> marcaComboBox = view.getMarcaComboBox();
+            marcaComboBox.setItems(FXCollections.observableArrayList(nomesMarcas));
+
+            // Configurar cellFactory para estilizar itens da lista suspensa
+            marcaComboBox.setCellFactory(listView -> new ListCell<String>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                        setStyle("");
+                    } else {
+                        setText(item);
+                        setStyle(
+                            "-fx-text-fill: #FFFFFF; "
+                            + "-fx-background-color: #2A2A2A; "
+                            + "-fx-font-family: Arial; "
+                            + "-fx-font-size: 14px;"
+                        );
+                        // Destacar item ao passar o mouse
+                        setOnMouseEntered(e -> setStyle(
+                            "-fx-text-fill: #F0A818; "
+                            + "-fx-background-color: #3A3A3A; "
+                            + "-fx-font-family: Arial; "
+                            + "-fx-font-size: 14px;"
+                        ));
+                        setOnMouseExited(e -> setStyle(
+                            "-fx-text-fill: #FFFFFF; "
+                            + "-fx-background-color: #2A2A2A; "
+                            + "-fx-font-family: Arial; "
+                            + "-fx-font-size: 14px;"
+                        ));
+                    }
+                }
+            });
+
+            // Configurar buttonCell para estilizar o item selecionado
+            marcaComboBox.setButtonCell(new ListCell<String>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                        setStyle("");
+                    } else {
+                        setText(item);
+                        setStyle(
+                            "-fx-text-fill: #FFFFFF; "
+                            + "-fx-background-color: #2A2A2A; "
+                            + "-fx-font-family: Arial; "
+                            + "-fx-font-size: 14px;"
+                        );
+                    }
+                }
+            });
+
+            // Garantir estilo consistente do ComboBox
+            marcaComboBox.setStyle(
+                "-fx-background-color: #2A2A2A; "
+                + "-fx-text-fill: #FFFFFF; "
+                + "-fx-font-size: 14px; "
+                + "-fx-border-color: #4A4A4A; "
+                + "-fx-border-width: 1; "
+                + "-fx-background-radius: 5; "
+                + "-fx-border-radius: 5;"
+            );
         } catch (SQLException e) {
-            mostrarErro("Erro ao carregar marcas: " + e.getMessage());
+            mostrarAlerta("Erro ao carregar marcas: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
     private void adicionarCamposFatura() {
-        contadorFaturas++;
-        HBox faturaBox = new HBox(10);
+        HBox faturaBox = new HBox(15);
         faturaBox.setAlignment(Pos.CENTER_LEFT);
-        faturaBox.setPadding(new Insets(5));
 
-        // Nº da Fatura
+        // Número da Fatura
         VBox numeroFaturaBox = new VBox(5);
-        Label numeroFaturaLabel = new Label("Nº da Fatura*:");
-        numeroFaturaLabel.setTextFill(Color.web("#BDBDBD"));
-        TextField numeroFaturaField = new TextField(String.valueOf(contadorFaturas));
-        numeroFaturaField.setStyle(
-            "-fx-background-color: #2A2A2A; " +
-            "-fx-text-fill: #FFFFFF; " +
-            "-fx-border-color: #4A4A4A; " +
-            "-fx-border-width: 1; " +
-            "-fx-background-radius: 5; " +
-            "-fx-border-radius: 5;"
+        Label numeroFaturaLabel = new Label("Número da Fatura " + contadorFaturas + ":");
+        numeroFaturaLabel.setStyle(
+                "-fx-font-family: Arial; "
+                + "-fx-font-size: 16px; "
+                + "-fx-text-fill: #BDBDBD;"
         );
-        numeroFaturaField.setPrefWidth(80);
+        TextField numeroFaturaField = new TextField(String.valueOf(contadorFaturas));
         numeroFaturaField.setEditable(false);
+        numeroFaturaField.setStyle(
+                "-fx-background-color: #2A2A2A; "
+                + "-fx-text-fill: #FFFFFF; "
+                + "-fx-font-size: 14px; "
+                + "-fx-border-color: #4A4A4A; "
+                + "-fx-border-width: 1; "
+                + "-fx-background-radius: 5; "
+                + "-fx-border-radius: 5;"
+        );
         numeroFaturaBox.getChildren().addAll(numeroFaturaLabel, numeroFaturaField);
+        numeroFaturaBox.setPrefWidth(150);
 
         // Vencimento
         VBox vencimentoBox = new VBox(5);
         Label vencimentoLabel = new Label("Vencimento*:");
-        vencimentoLabel.setTextFill(Color.web("#BDBDBD"));
-        DatePicker vencimentoPicker = new DatePicker();
-        vencimentoPicker.setStyle(
-            "-fx-background-color: #2A2A2A; " +
-            "-fx-text-fill: #FFFFFF; " +
-            "-fx-border-color: #4A4A4A; " +
-            "-fx-border-width: 1; " +
-            "-fx-background-radius: 5; " +
-            "-fx-border-radius: 5;"
+        vencimentoLabel.setStyle(
+                "-fx-font-family: Arial; "
+                + "-fx-font-size: 16px; "
+                + "-fx-text-fill: #BDBDBD;"
         );
-        vencimentoPicker.setPrefWidth(150);
+        DatePicker vencimentoPicker = new DatePicker();
+        // Configurar formato de data brasileiro (dd-MM-yy)
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yy", new Locale("pt", "BR"));
+        vencimentoPicker.setConverter(new StringConverter<LocalDate>() {
+            @Override
+            public String toString(LocalDate date) {
+                return (date != null) ? formatter.format(date) : "";
+            }
+
+            @Override
+            public LocalDate fromString(String string) {
+                if (string == null || string.isEmpty()) {
+                    return null;
+                }
+                try {
+                    return LocalDate.parse(string, formatter);
+                } catch (Exception e) {
+                    return null;
+                }
+            }
+        });
+        vencimentoPicker.setStyle(
+                "-fx-background-color: #2A2A2A; "
+                + "-fx-text-fill: #FFFFFF; "
+                + "-fx-font-size: 14px; "
+                + "-fx-border-color: #4A4A4A; "
+                + "-fx-border-width: 1; "
+                + "-fx-background-radius: 5; "
+                + "-fx-border-radius: 5;"
+        );
         vencimentoPicker.focusedProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal) {
                 vencimentoPicker.setStyle(
-                    "-fx-background-color: #2A2A2A; " +
-                    "-fx-text-fill: #FFFFFF; " +
-                    "-fx-border-color: #F0A818; " +
-                    "-fx-border-width: 1; " +
-                    "-fx-background-radius: 5; " +
-                    "-fx-border-radius: 5;"
+                        "-fx-background-color: #2A2A2A; "
+                        + "-fx-text-fill: #FFFFFF; "
+                        + "-fx-font-size: 14px; "
+                        + "-fx-border-color: #F0A818; "
+                        + "-fx-border-width: 1; "
+                        + "-fx-background-radius: 5; "
+                        + "-fx-border-radius: 5;"
                 );
             } else {
                 vencimentoPicker.setStyle(
-                    "-fx-background-color: #2A2A2A; " +
-                    "-fx-text-fill: #FFFFFF; " +
-                    "-fx-border-color: #4A4A4A; " +
-                    "-fx-border-width: 1; " +
-                    "-fx-background-radius: 5; " +
-                    "-fx-border-radius: 5;"
+                        "-fx-background-color: #2A2A2A; "
+                        + "-fx-text-fill: #FFFFFF; "
+                        + "-fx-font-size: 14px; "
+                        + "-fx-border-color: #4A4A4A; "
+                        + "-fx-border-width: 1; "
+                        + "-fx-background-radius: 5; "
+                        + "-fx-border-radius: 5;"
                 );
             }
         });
         vencimentoBox.getChildren().addAll(vencimentoLabel, vencimentoPicker);
+        vencimentoBox.setPrefWidth(150);
 
         // Valor
         VBox valorBox = new VBox(5);
-        Label valorLabel = new Label("Valor (R$)*:");
-        valorLabel.setTextFill(Color.web("#BDBDBD"));
-        TextField valorField = new TextField();
-        valorField.setPromptText("Digite o valor");
-        valorField.setStyle(
-            "-fx-background-color: #2A2A2A; " +
-            "-fx-text-fill: #FFFFFF; " +
-            "-fx-border-color: #4A4A4A; " +
-            "-fx-border-width: 1; " +
-            "-fx-background-radius: 5; " +
-            "-fx-border-radius: 5;"
+        Label valorLabel = new Label("Valor*:");
+        valorLabel.setStyle(
+                "-fx-font-family: Arial; "
+                + "-fx-font-size: 16px; "
+                + "-fx-text-fill: #BDBDBD;"
         );
-        valorField.setPrefWidth(120);
+        TextField valorField = new TextField();
+        valorField.setPromptText("Ex.: 150,50");
+        valorField.setStyle(
+                "-fx-background-color: #2A2A2A; "
+                + "-fx-text-fill: #FFFFFF; "
+                + "-fx-font-size: 14px; "
+                + "-fx-border-color: #4A4A4A; "
+                + "-fx-border-width: 1; "
+                + "-fx-background-radius: 5; "
+                + "-fx-border-radius: 5; "
+                + "-fx-prompt-text-fill: #BDBDBD;"
+        );
         valorField.focusedProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal) {
                 valorField.setStyle(
-                    "-fx-background-color: #2A2A2A; " +
-                    "-fx-text-fill: #FFFFFF; " +
-                    "-fx-border-color: #F0A818; " +
-                    "-fx-border-width: 1; " +
-                    "-fx-background-radius: 5; " +
-                    "-fx-border-radius: 5;"
+                        "-fx-background-color: #2A2A2A; "
+                        + "-fx-text-fill: #FFFFFF; "
+                        + "-fx-font-size: 14px; "
+                        + "-fx-border-color: #F0A818; "
+                        + "-fx-border-width: 1; "
+                        + "-fx-background-radius: 5; "
+                        + "-fx-border-radius: 5; "
+                        + "-fx-prompt-text-fill: #BDBDBD;"
                 );
             } else {
                 valorField.setStyle(
-                    "-fx-background-color: #2A2A2A; " +
-                    "-fx-text-fill: #FFFFFF; " +
-                    "-fx-border-color: #4A4A4A; " +
-                    "-fx-border-width: 1; " +
-                    "-fx-background-radius: 5; " +
-                    "-fx-border-radius: 5;"
+                        "-fx-background-color: #2A2A2A; "
+                        + "-fx-text-fill: #FFFFFF; "
+                        + "-fx-font-size: 14px; "
+                        + "-fx-border-color: #4A4A4A; "
+                        + "-fx-border-width: 1; "
+                        + "-fx-background-radius: 5; "
+                        + "-fx-border-radius: 5; "
+                        + "-fx-prompt-text-fill: #BDBDBD;"
                 );
             }
         });
+
+        // Adicionar TextFormatter para aceitar números decimais com vírgula
+        UnaryOperator<TextFormatter.Change> filter = change -> {
+            String newText = change.getControlNewText();
+            if (newText.matches("\\d*(,\\d{0,2})?")) {
+                return change;
+            }
+            return null;
+        };
+        TextFormatter<String> textFormatter = new TextFormatter<>(filter);
+        valorField.setTextFormatter(textFormatter);
+
         valorBox.getChildren().addAll(valorLabel, valorField);
+        valorBox.setPrefWidth(150);
 
         // Botão Remover
+        VBox removerBox = new VBox(5);
+        Label placeholderLabel = new Label("");
+        placeholderLabel.setStyle("-fx-font-size: 16px;");
         Button removerButton = new Button("Remover");
         removerButton.setStyle(
-            "-fx-background-color: #F44336; " +
-            "-fx-text-fill: #FFFFFF; " +
-            "-fx-font-weight: bold; " +
-            "-fx-background-radius: 5;"
+                "-fx-background-color: #F44336; "
+                + "-fx-text-fill: #FFFFFF; "
+                + "-fx-font-family: Arial; "
+                + "-fx-font-weight: bold; "
+                + "-fx-font-size: 14px; "
+                + "-fx-background-radius: 5;"
         );
         removerButton.setOnMouseEntered(e -> removerButton.setStyle(
-            "-fx-background-color: #D32F2F; " +
-            "-fx-text-fill: #FFFFFF; " +
-            "-fx-font-weight: bold; " +
-            "-fx-background-radius: 5;"
+                "-fx-background-color: #D32F2F; "
+                + "-fx-text-fill: #FFFFFF; "
+                + "-fx-font-family: Arial; "
+                + "-fx-font-weight: bold; "
+                + "-fx-font-size: 14px; "
+                + "-fx-background-radius: 5;"
         ));
         removerButton.setOnMouseExited(e -> removerButton.setStyle(
-            "-fx-background-color: #F44336; " +
-            "-fx-text-fill: #FFFFFF; " +
-            "-fx-font-weight: bold; " +
-            "-fx-background-radius: 5;"
+                "-fx-background-color: #F44336; "
+                + "-fx-text-fill: #FFFFFF; "
+                + "-fx-font-family: Arial; "
+                + "-fx-font-weight: bold; "
+                + "-fx-font-size: 14px; "
+                + "-fx-background-radius: 5;"
         ));
+        removerButton.setPrefWidth(100);
         removerButton.setOnAction(e -> {
             view.getFaturasContainer().getChildren().remove(faturaBox);
-            atualizarNumerosFatura();
+            faturas.remove(faturaBox);
         });
+        removerBox.getChildren().addAll(placeholderLabel, removerButton);
+        removerBox.setPrefWidth(100);
 
-        faturaBox.getChildren().addAll(numeroFaturaBox, vencimentoBox, valorBox, removerButton);
+        faturaBox.getChildren().addAll(numeroFaturaBox, vencimentoBox, valorBox, removerBox);
         view.getFaturasContainer().getChildren().add(faturaBox);
+        faturas.add(faturaBox);
+        contadorFaturas++;
     }
 
-    private void atualizarNumerosFatura() {
-        contadorFaturas = 0;
-        for (var node : view.getFaturasContainer().getChildren()) {
-            if (node instanceof HBox faturaBox) {
-                contadorFaturas++;
-                TextField numeroFaturaField = (TextField) ((VBox) faturaBox.getChildren().get(0)).getChildren().get(1);
-                numeroFaturaField.setText(String.valueOf(contadorFaturas));
-            }
+    private void salvarNotaFiscal() {
+        if (!validarDados()) {
+            return;
         }
-    }
 
-    private void salvarNotaComFaturas() {
-        try {
-            if (!validarDados()) return;
+        try (var conn = DatabaseConnection.getConnection()) {
+            conn.setAutoCommit(false);
 
-            NotaFiscal nota = criarNotaFiscal();
-            int notaId = notaFiscalDAO.inserirNotaFiscal(nota);
-            
-            if (notaId > 0) {
-                List<Fatura> faturas = coletarFaturas();
-                faturaDAO.inserirFaturas(faturas, notaId);
-                mostrarSucesso("Nota fiscal e faturas cadastradas com sucesso!");
-                limparFormulario();
-            }
-        } catch (SQLException e) {
-            mostrarErro("Erro no banco de dados: " + e.getMessage());
-        }
-    }
+            String numeroNota = view.getNumeroNotaField().getText().trim();
+            LocalDate dataEmissao = view.getDataEmissaoPicker().getValue();
+            String marca = view.getMarcaComboBox().getValue();
 
-    private NotaFiscal criarNotaFiscal() {
-        NotaFiscal nota = new NotaFiscal();
-        nota.setNumeroNota(view.getNumeroNotaField().getText().trim());
-        nota.setDataEmissao(view.getDataEmissaoPicker().getValue());
-        nota.setMarca(view.getMarcaComboBox().getValue());
-        return nota;
-    }
-
-    private List<Fatura> coletarFaturas() {
-        List<Fatura> faturas = new ArrayList<>();
-        for (var node : view.getFaturasContainer().getChildren()) {
-            if (node instanceof HBox faturaBox) {
+            List<Fatura> listaFaturas = new ArrayList<>();
+            for (HBox faturaBox : faturas) {
                 TextField numeroFaturaField = (TextField) ((VBox) faturaBox.getChildren().get(0)).getChildren().get(1);
                 DatePicker vencimentoPicker = (DatePicker) ((VBox) faturaBox.getChildren().get(1)).getChildren().get(1);
                 TextField valorField = (TextField) ((VBox) faturaBox.getChildren().get(2)).getChildren().get(1);
 
-                Fatura fatura = new Fatura();
-                fatura.setNumeroFatura(Integer.parseInt(numeroFaturaField.getText()));
-                fatura.setVencimento(vencimentoPicker.getValue());
-                fatura.setValor(Double.parseDouble(valorField.getText()));
-                fatura.setStatus("Não Emitida");
-                faturas.add(fatura);
+                int numeroFatura = Integer.parseInt(numeroFaturaField.getText());
+                LocalDate vencimento = vencimentoPicker.getValue();
+                String valorTexto = valorField.getText().trim();
+                double valor = converterValor(valorTexto);
+
+                Fatura fatura = new Fatura(numeroFatura, vencimento, valor, "Não Emitida");
+                listaFaturas.add(fatura);
+            }
+
+            NotaFiscal notaFiscal = new NotaFiscal(numeroNota, dataEmissao, marca, listaFaturas);
+            int notaFiscalId = notaFiscalDAO.inserirNotaFiscal(notaFiscal);
+
+            faturaDAO.inserirFaturas(listaFaturas, notaFiscalId);
+
+            conn.commit();
+            mostrarAlerta("Nota fiscal e faturas cadastradas com sucesso!", Alert.AlertType.INFORMATION);
+            limparFormulario();
+        } catch (SQLException e) {
+            mostrarAlerta("Erro ao salvar nota fiscal: " + e.getMessage(), Alert.AlertType.ERROR);
+            try (var conn = DatabaseConnection.getConnection()) {
+                conn.rollback();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
             }
         }
-        return faturas;
+    }
+
+    private double converterValor(String valorTexto) throws NumberFormatException {
+        if (valorTexto.isEmpty()) {
+            throw new NumberFormatException("Valor não pode estar vazio");
+        }
+        String valorFormatado = valorTexto.replace(",", ".");
+        return Double.parseDouble(valorFormatado);
     }
 
     private boolean validarDados() {
-        resetarEstilosErro();
-        boolean valido = true;
         StringBuilder erros = new StringBuilder();
+        boolean valido = true;
 
-        if (view.getNumeroNotaField().getText().trim().isEmpty()) {
+        String numeroNota = view.getNumeroNotaField().getText().trim();
+        LocalDate dataEmissao = view.getDataEmissaoPicker().getValue();
+        String marca = view.getMarcaComboBox().getValue();
+
+        if (numeroNota.isEmpty()) {
             erros.append("• Número da nota é obrigatório\n");
             destacarErro(view.getNumeroNotaField());
             valido = false;
         }
-
-        if (view.getDataEmissaoPicker().getValue() == null) {
+        if (dataEmissao == null) {
             erros.append("• Data de emissão é obrigatória\n");
             destacarErro(view.getDataEmissaoPicker());
             valido = false;
         }
-
-        if (view.getMarcaComboBox().getValue() == null) {
-            erros.append("• Selecione uma marca\n");
+        if (marca == null) {
+            erros.append("• Marca é obrigatória\n");
             destacarErro(view.getMarcaComboBox());
             valido = false;
         }
 
-        if (view.getFaturasContainer().getChildren().isEmpty()) {
-            erros.append("• Adicione pelo menos uma fatura\n");
-            valido = false;
-        } else {
-            LocalDate dataEmissao = view.getDataEmissaoPicker().getValue();
-            for (var node : view.getFaturasContainer().getChildren()) {
-                if (node instanceof HBox faturaBox) {
-                    TextField numeroFaturaField = (TextField) ((VBox) faturaBox.getChildren().get(0)).getChildren().get(1);
-                    DatePicker vencimentoPicker = (DatePicker) ((VBox) faturaBox.getChildren().get(1)).getChildren().get(1);
-                    TextField valorField = (TextField) ((VBox) faturaBox.getChildren().get(2)).getChildren().get(1);
+        for (HBox faturaBox : faturas) {
+            TextField numeroFaturaField = (TextField) ((VBox) faturaBox.getChildren().get(0)).getChildren().get(1);
+            DatePicker vencimentoPicker = (DatePicker) ((VBox) faturaBox.getChildren().get(1)).getChildren().get(1);
+            TextField valorField = (TextField) ((VBox) faturaBox.getChildren().get(2)).getChildren().get(1);
 
-                    if (numeroFaturaField.getText().trim().isEmpty()) {
-                        erros.append("• Nº da fatura é obrigatório\n");
-                        destacarErro(numeroFaturaField);
-                        valido = false;
-                    }
-
-                    if (vencimentoPicker.getValue() == null) {
-                        erros.append("• Vencimento da fatura é obrigatório\n");
-                        destacarErro(vencimentoPicker);
-                        valido = false;
-                    } else if (dataEmissao != null && vencimentoPicker.getValue().isBefore(dataEmissao)) {
-                        erros.append("• Fatura não pode vencer antes da emissão\n");
-                        destacarErro(vencimentoPicker);
-                        valido = false;
-                    }
-
-                    try {
-                        double valor = Double.parseDouble(valorField.getText());
-                        if (valor <= 0) {
-                            erros.append("• Valor da fatura deve ser positivo\n");
-                            destacarErro(valorField);
-                            valido = false;
-                        }
-                    } catch (NumberFormatException e) {
-                        erros.append("• Valor da fatura inválido\n");
-                        destacarErro(valorField);
-                        valido = false;
-                    }
+            if (vencimentoPicker.getValue() == null) {
+                erros.append("• Vencimento da fatura ").append(numeroFaturaField.getText()).append(" é obrigatório\n");
+                destacarErro(vencimentoPicker);
+                valido = false;
+            } else if (dataEmissao != null && vencimentoPicker.getValue().isBefore(dataEmissao)) {
+                erros.append("• Vencimento da fatura ").append(numeroFaturaField.getText()).append(" deve ser após a data de emissão\n");
+                destacarErro(vencimentoPicker);
+                valido = false;
+            }
+            if (valorField.getText().trim().isEmpty()) {
+                erros.append("• Valor da fatura ").append(numeroFaturaField.getText()).append(" é obrigatório\n");
+                destacarErro(valorField);
+                valido = false;
+            } else {
+                try {
+                    converterValor(valorField.getText().trim());
+                } catch (NumberFormatException e) {
+                    erros.append("• Valor da fatura ").append(numeroFaturaField.getText()).append(" deve ser um número válido (ex.: 123,45)\n");
+                    destacarErro(valorField);
+                    valido = false;
                 }
             }
         }
 
         if (!valido) {
-            mostrarErro("Corrija os seguintes erros:\n\n" + erros.toString());
+            mostrarAlerta("Erros no formulário:\n" + erros.toString(), Alert.AlertType.ERROR);
         }
-
         return valido;
     }
 
     private void destacarErro(Control control) {
-        control.setStyle(
-            "-fx-border-color: #FF0000; " +
-            "-fx-border-width: 1.5; " +
-            "-fx-background-radius: 5; " +
-            "-fx-border-radius: 5;"
-        );
+        control.setStyle(control.getStyle() + "-fx-border-color: #FF0000; -fx-border-width: 1.5;");
     }
 
     private void resetarEstilosErro() {
         view.getNumeroNotaField().setStyle(
-            "-fx-background-color: #2A2A2A; " +
-            "-fx-text-fill: #FFFFFF; " +
-            "-fx-border-color: #4A4A4A; " +
-            "-fx-border-width: 1; " +
-            "-fx-background-radius: 5; " +
-            "-fx-border-radius: 5;"
+                "-fx-background-color: #2A2A2A; "
+                + "-fx-text-fill: #FFFFFF; "
+                + "-fx-font-size: 14px; "
+                + "-fx-border-color: #4A4A4A; "
+                + "-fx-border-width: 1; "
+                + "-fx-background-radius: 5; "
+                + "-fx-border-radius: 5; "
+                + "-fx-prompt-text-fill: #BDBDBD;"
         );
         view.getDataEmissaoPicker().setStyle(
-            "-fx-background-color: #2A2A2A; " +
-            "-fx-text-fill: #FFFFFF; " +
-            "-fx-border-color: #4A4A4A; " +
-            "-fx-border-width: 1; " +
-            "-fx-background-radius: 5; " +
-            "-fx-border-radius: 5;"
+                "-fx-background-color: #2A2A2A; "
+                + "-fx-text-fill: #FFFFFF; "
+                + "-fx-font-size: 14px; "
+                + "-fx-border-color: #4A4A4A; "
+                + "-fx-border-width: 1; "
+                + "-fx-background-radius: 5; "
+                + "-fx-border-radius: 5;"
         );
         view.getMarcaComboBox().setStyle(
-            "-fx-background-color: #2A2A2A; " +
-            "-fx-text-fill: #FFFFFF; " +
-            "-fx-border-color: #4A4A4A; " +
-            "-fx-border-width: 1; " +
-            "-fx-background-radius: 5; " +
-            "-fx-border-radius: 5;"
+                "-fx-background-color: #2A2A2A; "
+                + "-fx-text-fill: #FFFFFF; "
+                + "-fx-font-size: 14px; "
+                + "-fx-border-color: #4A4A4A; "
+                + "-fx-border-width: 1; "
+                + "-fx-background-radius: 5; "
+                + "-fx-border-radius: 5;"
         );
+
         for (var node : view.getFaturasContainer().getChildren()) {
             if (node instanceof HBox faturaBox) {
                 TextField numeroFaturaField = (TextField) ((VBox) faturaBox.getChildren().get(0)).getChildren().get(1);
                 DatePicker vencimentoPicker = (DatePicker) ((VBox) faturaBox.getChildren().get(1)).getChildren().get(1);
                 TextField valorField = (TextField) ((VBox) faturaBox.getChildren().get(2)).getChildren().get(1);
+
                 numeroFaturaField.setStyle(
-                    "-fx-background-color: #2A2A2A; " +
-                    "-fx-text-fill: #FFFFFF; " +
-                    "-fx-border-color: #4A4A4A; " +
-                    "-fx-border-width: 1; " +
-                    "-fx-background-radius: 5; " +
-                    "-fx-border-radius: 5;"
+                        "-fx-background-color: #2A2A2A; "
+                        + "-fx-text-fill: #FFFFFF; "
+                        + "-fx-font-size: 14px; "
+                        + "-fx-border-color: #4A4A4A; "
+                        + "-fx-border-width: 1; "
+                        + "-fx-background-radius: 5; "
+                        + "-fx-border-radius: 5;"
                 );
                 vencimentoPicker.setStyle(
-                    "-fx-background-color: #2A2A2A; " +
-                    "-fx-text-fill: #FFFFFF; " +
-                    "-fx-border-color: #4A4A4A; " +
-                    "-fx-border-width: 1; " +
-                    "-fx-background-radius: 5; " +
-                    "-fx-border-radius: 5;"
+                        "-fx-background-color: #2A2A2A; "
+                        + "-fx-text-fill: #FFFFFF; "
+                        + "-fx-font-size: 14px; "
+                        + "-fx-border-color: #4A4A4A; "
+                        + "-fx-border-width: 1; "
+                        + "-fx-background-radius: 5; "
+                        + "-fx-border-radius: 5;"
                 );
                 valorField.setStyle(
-                    "-fx-background-color: #2A2A2A; " +
-                    "-fx-text-fill: #FFFFFF; " +
-                    "-fx-border-color: #4A4A4A; " +
-                    "-fx-border-width: 1; " +
-                    "-fx-background-radius: 5; " +
-                    "-fx-border-radius: 5;"
+                        "-fx-background-color: #2A2A2A; "
+                        + "-fx-text-fill: #FFFFFF; "
+                        + "-fx-font-size: 14px; "
+                        + "-fx-border-color: #4A4A4A; "
+                        + "-fx-border-width: 1; "
+                        + "-fx-background-radius: 5; "
+                        + "-fx-border-radius: 5; "
+                        + "-fx-prompt-text-fill: #BDBDBD;"
                 );
             }
         }
+    }
+
+    private void mostrarAlerta(String mensagem, Alert.AlertType tipo) {
+        Alert alert = new Alert(tipo);
+        alert.setTitle(tipo == Alert.AlertType.ERROR ? "Erro" : "Sucesso");
+        alert.setHeaderText(null);
+        alert.setContentText(mensagem);
+        alert.showAndWait();
     }
 
     private void limparFormulario() {
@@ -383,22 +568,8 @@ public class NotaFaturaController {
         view.getDataEmissaoPicker().setValue(null);
         view.getMarcaComboBox().setValue(null);
         view.getFaturasContainer().getChildren().clear();
-        contadorFaturas = 0;
-    }
-
-    private void mostrarSucesso(String mensagem) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Sucesso");
-        alert.setHeaderText(null);
-        alert.setContentText(mensagem);
-        alert.showAndWait();
-    }
-
-    private void mostrarErro(String mensagem) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Erro");
-        alert.setHeaderText(null);
-        alert.setContentText(mensagem);
-        alert.showAndWait();
+        faturas.clear();
+        contadorFaturas = 1;
+        resetarEstilosErro();
     }
 }

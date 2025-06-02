@@ -3,12 +3,10 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+            <file>file:/C:/Users/Henrique/Documents/NetBeansProjects/GuardouPagou/.git/config</file>
+            <file>file:/C:/Users/Henrique/Documents/NetBeansProjects/GuardouPagou/src/com/GuardouPagou/models/Fatura.java</file>
+            <file>file:/C:/Users/Henrique/Documents/NetBeansProjects/GuardouPagou/src/com/GuardouPagou/models/DatabaseConnection.java</file>
             <file>file:/C:/Users/Henrique/Documents/NetBeansProjects/GuardouPagou/src/com/GuardouPagou/models/MarcaView.java</file>
-            <file>file:/C:/Users/Henrique/Documents/NetBeansProjects/GuardouPagou/src/com/GuardouPagou/models/NotaFaturaView.java</file>
-            <file>file:/C:/Users/Henrique/Documents/NetBeansProjects/GuardouPagou/src/com/GuardouPagou/models/NotaFiscalView.java</file>
-            <file>file:/C:/Users/Henrique/Documents/NetBeansProjects/GuardouPagou/src/com/GuardouPagou/controllers/MarcaController.java</file>
-            <file>file:/C:/Users/Henrique/Documents/NetBeansProjects/GuardouPagou/src/com/GuardouPagou/controllers/NotaFaturaController.java</file>
-            <file>file:/C:/Users/Henrique/Documents/NetBeansProjects/GuardouPagou/src/com/GuardouPagou/controllers/NotaFiscalController.java</file>
         </group>
     </open-files>
 </project-private>

@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.time.LocalDate;
 
 public class MainView {
+
     private BorderPane root;
     private Button btnListarFaturas, btnListarMarcas, btnArquivadas;
     private Button btnNovaFatura, btnNovaMarca, btnSalvarEmail;
@@ -52,13 +53,13 @@ public class MainView {
         conteudoLabel.setTextFill(Color.web("#000000"));
 
         menuLateral.getChildren().addAll(
-            criarLogo(),
-            criarTitulo("Principais listagens"),
-            btnListarFaturas, btnListarMarcas, btnArquivadas,
-            criarTitulo("Novos Cadastros"),
-            btnNovaFatura, btnNovaMarca,
-            criarEspacoFlexivel(),
-            criarEmailPanel()
+                criarLogo(),
+                criarTitulo("Principais listagens"),
+                btnListarFaturas, btnListarMarcas, btnArquivadas,
+                criarTitulo("Novos Cadastros"),
+                btnNovaFatura, btnNovaMarca,
+                criarEspacoFlexivel(),
+                criarEmailPanel()
         );
 
         root.setLeft(menuLateral);
@@ -68,9 +69,9 @@ public class MainView {
     private Button criarBotao(String texto, String cor) {
         Button btn = new Button(texto);
         btn.setMaxWidth(Double.MAX_VALUE);
-        btn.setStyle("-fx-background-color: " + cor + "; " +
-                    "-fx-text-fill: #000000; " +
-                    "-fx-font-weight: bold;");
+        btn.setStyle("-fx-background-color: " + cor + "; "
+                + "-fx-text-fill: #000000; "
+                + "-fx-font-weight: bold;");
         return btn;
     }
 
@@ -112,9 +113,9 @@ public class MainView {
     private VBox criarEmailPanel() {
         VBox emailPanel = new VBox(10);
         emailPanel.setPadding(new Insets(15));
-        emailPanel.setStyle("-fx-background-color: #3d4043; " +
-                          "-fx-border-color: #C88200; " +
-                          "-fx-border-radius: 5;");
+        emailPanel.setStyle("-fx-background-color: #3d4043; "
+                + "-fx-border-color: #C88200; "
+                + "-fx-border-radius: 5;");
 
         Label emailTitle = new Label("Alertas por E-mail");
         emailTitle.setFont(Font.font("Arial", FontWeight.BOLD, 14));
@@ -126,9 +127,9 @@ public class MainView {
         emailField.setStyle("-fx-prompt-text-fill: #BDBDBD;");
 
         btnSalvarEmail = new Button("Salvar E-mail");
-        btnSalvarEmail.setStyle("-fx-background-color: #C88200; " +
-                              "-fx-text-fill: #000000; " +
-                              "-fx-font-weight: bold;");
+        btnSalvarEmail.setStyle("-fx-background-color: #C88200; "
+                + "-fx-text-fill: #000000; "
+                + "-fx-font-weight: bold;");
 
         emailPanel.getChildren().addAll(emailTitle, emailField, btnSalvarEmail);
         return emailPanel;
@@ -136,12 +137,23 @@ public class MainView {
 
     public void mostrarListaMarcas(ObservableList<Marca> marcas) {
         TableView<Marca> tabela = new TableView<>();
-        tabela.setStyle("-fx-background-color: #323437;");
+        tabela.setStyle("-fx-background-color: #3d4043; -fx-border-color: #4A4A4A; -fx-border-width: 1; -fx-background-radius: 5; -fx-border-radius: 5;");
         tabela.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         TableColumn<Marca, Integer> colunaId = new TableColumn<>("ID");
         colunaId.setCellValueFactory(new PropertyValueFactory<>("id"));
-        colunaId.setStyle("-fx-text-fill: #000000;");
+        colunaId.setCellFactory(column -> new TableCell<Marca, Integer>() {
+            @Override
+            protected void updateItem(Integer id, boolean empty) {
+                super.updateItem(id, empty);
+                if (empty || id == null) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(id.toString());
+                }
+            }
+        });
         colunaId.setPrefWidth(80);
 
         TableColumn<Marca, String> colunaNome = new TableColumn<>("Nome");
@@ -155,9 +167,23 @@ public class MainView {
                     setStyle("");
                 } else {
                     setText(nome);
+
                     Marca marca = getTableView().getItems().get(getIndex());
-                    String cor = marca.getCor() != null && marca.getCor().matches("#[0-9A-Fa-f]{6}") ? marca.getCor() : "#000000";
-                    setStyle("-fx-text-fill: " + cor + "; -fx-font-weight: bold; -fx-background-color: #FFFFFF;");
+                    String cor = marca.getCor();
+
+                    if (cor != null && cor.matches("#[0-9A-Fa-f]{6}")) {
+                        setStyle("-fx-text-fill: " + cor + "; "
+                                + "-fx-font-weight: bold; "
+                                + "-fx-border-color: #4A4A4A; "
+                                + "-fx-border-width: 0.5; "
+                                + "-fx-alignment: CENTER-LEFT;");
+                    } else {
+                        setStyle("-fx-text-fill: #FFFFFF; "
+                                + "-fx-font-weight: bold; "
+                                + "-fx-border-color: #4A4A4A; "
+                                + "-fx-border-width: 0.5; "
+                                + "-fx-alignment: CENTER-LEFT;");
+                    }
                 }
             }
         });
@@ -169,12 +195,15 @@ public class MainView {
             @Override
             protected void updateItem(String descricao, boolean empty) {
                 super.updateItem(descricao, empty);
-                if (empty || descricao == null) {
+                if (empty) {
                     setText(null);
+                    setStyle("");
+                } else if (descricao == null || descricao.trim().isEmpty()) {
+                    setText("Nenhuma descrição adicionada");
                     setStyle("");
                 } else {
                     setText(descricao);
-                    setStyle("-fx-text-fill: #000000; -fx-background-color: #FFFFFF;");
+                    setStyle("");
                 }
             }
         });
@@ -186,8 +215,8 @@ public class MainView {
             private final Button btnExcluir = new Button("Excluir");
 
             {
-                btnEditar.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
-                btnExcluir.setStyle("-fx-background-color: #F44336; -fx-text-fill: white;");
+                btnEditar.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 12px; -fx-padding: 5px;");
+                btnExcluir.setStyle("-fx-background-color: #F44336; -fx-text-fill: white; -fx-font-size: 12px; -fx-padding: 5px;");
 
                 btnEditar.setOnAction(e -> {
                     Marca marca = getTableView().getItems().get(getIndex());
@@ -207,10 +236,12 @@ public class MainView {
                     setGraphic(null);
                 } else {
                     HBox botoes = new HBox(5, btnEditar, btnExcluir);
+                    botoes.setAlignment(Pos.CENTER);
                     setGraphic(botoes);
                 }
             }
         });
+        colunaAcoes.setPrefWidth(150);
 
         tabela.getColumns().addAll(colunaId, colunaNome, colunaDescricao, colunaAcoes);
         tabela.setItems(marcas);
@@ -224,10 +255,10 @@ public class MainView {
 
         HBox toolbar = new HBox(10);
         Button btnAtualizar = new Button("Atualizar");
-        btnAtualizar.setStyle("-fx-background-color: #C88200; -fx-text-fill: #000000;");
+        btnAtualizar.setStyle("-fx-background-color: #C88200; -fx-text-fill: #000000; -fx-font-weight: bold;");
 
         Button btnNovaMarca = new Button("Nova Marca");
-        btnNovaMarca.setStyle("-fx-background-color: #F0A818; -fx-text-fill: #000000;");
+        btnNovaMarca.setStyle("-fx-background-color: #F0A818; -fx-text-fill: #000000; -fx-font-weight: bold;");
 
         toolbar.getChildren().addAll(btnAtualizar, btnNovaMarca);
         toolbar.setAlignment(Pos.CENTER_RIGHT);
@@ -405,12 +436,35 @@ public class MainView {
         }
     }
 
-    public Button getBtnListarFaturas() { return btnListarFaturas; }
-    public Button getBtnListarMarcas() { return btnListarMarcas; }
-    public Button getBtnArquivadas() { return btnArquivadas; }
-    public Button getBtnNovaFatura() { return btnNovaFatura; }
-    public Button getBtnNovaMarca() { return btnNovaMarca; }
-    public Button getBtnSalvarEmail() { return btnSalvarEmail; }
-    public TextField getEmailField() { return emailField; }
-    public Label getConteudoLabel() { return conteudoLabel; }
+    public Button getBtnListarFaturas() {
+        return btnListarFaturas;
+    }
+
+    public Button getBtnListarMarcas() {
+        return btnListarMarcas;
+    }
+
+    public Button getBtnArquivadas() {
+        return btnArquivadas;
+    }
+
+    public Button getBtnNovaFatura() {
+        return btnNovaFatura;
+    }
+
+    public Button getBtnNovaMarca() {
+        return btnNovaMarca;
+    }
+
+    public Button getBtnSalvarEmail() {
+        return btnSalvarEmail;
+    }
+
+    public TextField getEmailField() {
+        return emailField;
+    }
+
+    public Label getConteudoLabel() {
+        return conteudoLabel;
+    }
 }

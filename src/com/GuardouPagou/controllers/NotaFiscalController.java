@@ -328,7 +328,7 @@ public class NotaFiscalController {
             "-fx-border-radius: 5;"
         );
         view.getMarcaComboBox().setStyle(
-            "-fx-background-color: #2A2A2A; " +
+            "-fx-background-color: #BDBDBD; " +
             "-fx-text-fill: #FFFFFF; " +
             "-fx-border-color: #4A4A4A; " +
             "-fx-border-width: 1; " +
