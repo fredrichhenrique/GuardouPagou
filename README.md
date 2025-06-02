@@ -92,6 +92,6 @@ Guardou-Pagou/
 ## 📦 Clonando o Repositório
 
 ```bash
-git clone https://github.com/seu-usuario/Guardou-Pagou.git
+git clone https://github.com/seu-usuario/GuardouPagou.git
 cd Guardou-Pagou
 ```
