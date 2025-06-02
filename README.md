@@ -93,5 +93,5 @@ Guardou-Pagou/
 
 ```bash
 git clone https://github.com/seu-usuario/GuardouPagou.git
-cd Guardou-Pagou
+cd GuardouPagou
 ```
