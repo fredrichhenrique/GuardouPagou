@@ -33,6 +33,19 @@ public class MainView {
 
     public MainView() {
         criarUI();
+        // Carregar a listagem de faturas na inicialização
+        try {
+            ObservableList<Fatura> faturas = new FaturaDAO().listarFaturas();
+            mostrarListaFaturas(faturas);
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Erro");
+            alert.setHeaderText(null);
+            alert.setContentText("Erro ao carregar faturas na inicialização: " + ex.getMessage());
+            alert.showAndWait();
+            root.setCenter(labelText); // Mantém a mensagem padrão em caso de erro
+        }
     }
 
     private void criarUI() {
@@ -210,6 +223,8 @@ public class MainView {
         });
         colunaDescricao.setPrefWidth(250);
 
+        // Coluna Ação removida para ocultar o botão Excluir
+        /*
         TableColumn<Marca, Void> colunaAcoes = new TableColumn<>("Ação");
         colunaAcoes.setCellFactory(column -> new TableCell<Marca, Void>() {
             private final Button btnExcluir = new Button("Excluir");
@@ -235,8 +250,9 @@ public class MainView {
             }
         });
         colunaAcoes.setPrefWidth(150);
+        */
 
-        tabela.getColumns().addAll(colunaId, colunaNome, colunaDescricao, colunaAcoes);
+        tabela.getColumns().addAll(colunaId, colunaNome, colunaDescricao);
         tabela.setItems(marcas);
 
         VBox container = new VBox(20);
@@ -279,7 +295,7 @@ public class MainView {
                     setStyle("");
                 } else {
                     setText(id.toString());
-                    setStyle("-fx-text-fill: #000000; -fx-background-color: transparent; -fx-font-weight: bold; -fx-border-color: #6A6A6A; -fx-border-width: 0.5; -fx-alignment: CENTER-LEFT;");
+                    setStyle("-fx-text-fill: #000000; -fx-background-color: transparent; -fx-font-weight: bold; -fx-border-color: #ffffff; -fx-border-width: 0.5; -fx-alignment: CENTER-LEFT;");
                 }
             }
         });
@@ -296,7 +312,7 @@ public class MainView {
                     setStyle("");
                 } else {
                     setText(numeroNota);
-                    setStyle("-fx-text-fill: #000000; -fx-background-color: transparent; -fx-font-weight: bold; -fx-border-color: #6A6A6A; -fx-border-width: 0.5; -fx-alignment: CENTER-LEFT;");
+                    setStyle("-fx-text-fill: #000000; -fx-background-color: transparent; -fx-font-weight: bold; -fx-border-color: #ffffff; -fx-border-width: 0.5; -fx-alignment: CENTER-LEFT;");
                 }
             }
         });
@@ -313,7 +329,7 @@ public class MainView {
                     setStyle("");
                 } else {
                     setText(numeroFatura.toString());
-                    setStyle("-fx-text-fill: #000000; -fx-background-color: transparent; -fx-font-weight: bold; -fx-border-color: #6A6A6A; -fx-border-width: 0.5; -fx-alignment: CENTER-LEFT;");
+                    setStyle("-fx-text-fill: #000000; -fx-background-color: transparent; -fx-font-weight: bold; -fx-border-color: #ffffff; -fx-border-width: 0.5; -fx-alignment: CENTER-LEFT;");
                 }
             }
         });
@@ -322,7 +338,7 @@ public class MainView {
         TableColumn<Fatura, LocalDate> colunaVencimento = new TableColumn<>("VENCIMENTO");
         colunaVencimento.setCellValueFactory(new PropertyValueFactory<>("vencimento"));
         colunaVencimento.setCellFactory(column -> new TableCell<Fatura, LocalDate>() {
-            private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+            private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             @Override
             protected void updateItem(LocalDate vencimento, boolean empty) {
                 super.updateItem(vencimento, empty);
@@ -331,7 +347,7 @@ public class MainView {
                     setStyle("");
                 } else {
                     setText(vencimento.format(formatter));
-                    setStyle("-fx-text-fill: #000000; -fx-background-color: transparent; -fx-font-weight: bold; -fx-border-color: #6A6A6A; -fx-border-width: 0.5; -fx-alignment: CENTER-LEFT;");
+                    setStyle("-fx-text-fill: #000000; -fx-background-color: transparent; -fx-font-weight: bold; -fx-border-color: #ffffff; -fx-border-width: 0.5; -fx-alignment: CENTER-LEFT;");
                 }
             }
         });
@@ -348,7 +364,7 @@ public class MainView {
                     setStyle("");
                 } else {
                     setText(marca);
-                    setStyle("-fx-text-fill: #000000; -fx-background-color: transparent; -fx-font-weight: bold; -fx-border-color: #6A6A6A; -fx-border-width: 0.5; -fx-alignment: CENTER-LEFT;");
+                    setStyle("-fx-text-fill: #000000; -fx-background-color: transparent; -fx-font-weight: bold; -fx-border-color: #ffffff; -fx-border-width: 0.5; -fx-alignment: CENTER-LEFT;");
                 }
             }
         });
@@ -366,9 +382,9 @@ public class MainView {
                 } else {
                     setText(status);
                     if (status.equalsIgnoreCase("Vencida")) {
-                        setStyle("-fx-text-fill: #FF0000; -fx-background-color: transparent; -fx-font-weight: bold; -fx-border-color: #6A6A6A; -fx-border-width: 0.5; -fx-alignment: CENTER-LEFT;");
+                        setStyle("-fx-text-fill: #f0a818; -fx-background-color: transparent; -fx-font-weight: bold; -fx-border-color: #ffffff; -fx-border-width: 0.5; -fx-alignment: CENTER-LEFT;");
                     } else {
-                        setStyle("-fx-text-fill: #000000; -fx-background-color: transparent; -fx-font-weight: bold; -fx-border-color: #6A6A6A; -fx-border-width: 0.5; -fx-alignment: CENTER-LEFT;");
+                        setStyle("-fx-text-fill: #000000; -fx-background-color: transparent; -fx-font-weight: bold; -fx-border-color: #ffffff; -fx-border-width: 0.5; -fx-alignment: CENTER-LEFT;");
                     }
                 }
             }
@@ -389,7 +405,7 @@ public class MainView {
         Button btnAtualizar = new Button("Atualizar");
         btnAtualizar.setStyle("-fx-background-color: #C88200; -fx-text-fill: #000000; -fx-font-weight: bold;");
 
-        toolbar.getChildren().add(btnAtualizar);
+        toolbar.getChildren().addAll(btnAtualizar);
         toolbar.setAlignment(Pos.CENTER_RIGHT);
 
         container.getChildren().addAll(titulo, toolbar, tabela);
