@@ -2,9 +2,9 @@ package com.GuardouPagou.controllers;
 
 import com.GuardouPagou.models.Marca;
 import com.GuardouPagou.models.Fatura;
-import com.GuardouPagou.models.MainView;
-import com.GuardouPagou.models.MarcaView;
-import com.GuardouPagou.models.NotaFaturaView;
+import com.GuardouPagou.views.MainView;
+import com.GuardouPagou.views.MarcaView;
+import com.GuardouPagou.views.NotaFaturaView;
 import com.GuardouPagou.dao.MarcaDAO;
 import com.GuardouPagou.dao.FaturaDAO;
 import com.GuardouPagou.controllers.MarcaController;

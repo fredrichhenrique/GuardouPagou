@@ -1,8 +1,10 @@
-package com.GuardouPagou.models;
+package com.GuardouPagou.views;
 
 import com.GuardouPagou.dao.MarcaDAO;
 import com.GuardouPagou.controllers.MarcaController;
 import com.GuardouPagou.dao.FaturaDAO;
+import com.GuardouPagou.models.Fatura;
+import com.GuardouPagou.models.Marca;
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
 import javafx.geometry.*;
