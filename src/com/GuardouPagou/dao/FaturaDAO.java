@@ -34,9 +34,12 @@ public class FaturaDAO {
 
     public ObservableList<Fatura> listarFaturas() throws SQLException {
         ObservableList<Fatura> faturas = FXCollections.observableArrayList();
-        String sql = "SELECT f.id, f.nota_fiscal_id, n.numero_nota, f.numero_fatura, f.vencimento, f.valor, f.status " +
+        String sql = "SELECT f.id, f.nota_fiscal_id, n.numero_nota, f.numero_fatura, f.vencimento, f.valor, f.status, " +
+                     "COALESCE(m.nome, n.marca) AS marca " +
                      "FROM faturas f " +
-                     "JOIN notas_fiscais n ON f.nota_fiscal_id = n.id";
+                     "JOIN notas_fiscais n ON f.nota_fiscal_id = n.id " +
+                     "LEFT JOIN marcas m ON n.marca_id = m.id " +
+                     "ORDER BY n.numero_nota ASC, f.numero_fatura ASC";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -45,11 +48,13 @@ public class FaturaDAO {
             while (rs.next()) {
                 Fatura fatura = new Fatura();
                 fatura.setId(rs.getInt("id"));
+                fatura.setNotaFiscalId(rs.getInt("nota_fiscal_id"));
                 fatura.setNumeroNota(rs.getString("numero_nota"));
                 fatura.setNumeroFatura(rs.getInt("numero_fatura"));
                 fatura.setVencimento(rs.getDate("vencimento").toLocalDate());
                 fatura.setValor(rs.getDouble("valor"));
                 fatura.setStatus(rs.getString("status"));
+                fatura.setMarca(rs.getString("marca"));
                 faturas.add(fatura);
             }
         }

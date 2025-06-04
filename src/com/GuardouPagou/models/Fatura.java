@@ -10,6 +10,7 @@ public class Fatura {
     private LocalDate vencimento;
     private double valor;
     private String status;
+    private String marca; // Adicionado para coluna MARCA
 
     // Construtor vazio
     public Fatura() {
@@ -85,5 +86,13 @@ public class Fatura {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getMarca() {
+        return marca;
+    }
+
+    public void setMarca(String marca) {
+        this.marca = marca;
     }
 }
